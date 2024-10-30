@@ -2,31 +2,31 @@ from django.db import models
 
 
 class TeachersVariantStudent(models.Model):
-    fk_teacher_id = models.ForeignKey('Teacher', on_delete=models.PROTECT)
-    fk_student_id = models.ForeignKey('Student', on_delete=models.PROTECT)
-    fk_variant_id = models.ForeignKey('Variant', on_delete=models.PROTECT)
+    fk_teacher_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='teacher_v_s')
+    fk_student_id = models.ForeignKey('Student', on_delete=models.PROTECT, related_name='student_t_v')
+    fk_variant_id = models.ForeignKey('Variant', on_delete=models.PROTECT, related_name='variant_t_s')
     dead_line = models.DateTimeField('Дедлайн')
 
     def __str__(self):
         return 'Связь, учителя ученика и варианта'
 
 class VariantToTask(models.Model):
-    fk_variant_id = models.ForeignKey('Variant', on_delete=models.PROTECT)
-    fk_task_id = models.ForeignKey('Task', on_delete=models.PROTECT)
+    fk_variant_id = models.ForeignKey('Variant', on_delete=models.PROTECT, related_name='variant_task')
+    fk_task_id = models.ForeignKey('Task', on_delete=models.PROTECT, related_name='taskr_v')
 
     def __str__(self):
         return 'Связь варианта и номера'
 
 class TeachersToStudent(models.Model):
-    fk_teacher_id = models.ForeignKey('Teacher', on_delete=models.PROTECT)
-    fk_student_id = models.ForeignKey('Student', on_delete=models.PROTECT)
+    fk_teacher_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='teacher_s')
+    fk_student_id = models.ForeignKey('Student', on_delete=models.PROTECT, related_name='student_t')
 
     def __str__(self):
         return 'Связь учителя и ученика'
 
 class TeachersToExam(models.Model):
-    fk_teacher_id = models.ForeignKey('Teacher', on_delete=models.PROTECT)
-    fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT)
+    fk_teacher_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='teacher_e')
+    fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_teacher')
 
     def __str__(self):
         return 'Связь учителя и экзамена'
@@ -48,8 +48,8 @@ class PointsOfTask(models.Model):
 
 class Task(models.Model):
     task_id = models.CharField('Код номера', max_length=10, primary_key=True)
-    fk_code_of_number = models.ForeignKey('Exam', on_delete=models.PROTECT)
-    fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT)
+    fk_code_of_number = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='code_of_number')
+    fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_task')
     description = models.TextField('Описание задания')
     image_path = models.CharField('Путь до изображения', max_length=128)
     correct_answer = models.CharField('Правильный ответ', max_length=128)
@@ -62,7 +62,7 @@ class Variant(models.Model):
     creator_id = models.CharField('Код создателя', max_length=10)
     visibility = models.BooleanField('Доступность')
     time_limit = models.TimeField('Временное ограничение')
-    fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT)
+    fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_v')
 
     def __str__(self):
         return 'Вариант'
