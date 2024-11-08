@@ -80,7 +80,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'Cento_database',
-        'USER': 'postgres',
+        'USER': 'maxim',
         'PASSWORD': 'vfrtynjc2005',
         'HOST': 'localhost',
         'PORT': '5432',
