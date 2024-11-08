@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'centodjango.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Cento_database',
+        'NAME': 'cento_db',
         'USER': 'maxim',
         'PASSWORD': 'vfrtynjc2005',
         'HOST': 'localhost',
