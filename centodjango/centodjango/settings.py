@@ -80,11 +80,15 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'cento_db',
-        'USER': 'maxim',
+        'USER': 'maxim', #correct for server
         'PASSWORD': 'vfrtynjc2005',
         'HOST': 'localhost',
         'PORT': '5432',
     }
+
+#'NAME': 'Cento_database',
+#'USER': 'postgres', # correct for local
+
 }
 #python manage.py makemigrations
 
