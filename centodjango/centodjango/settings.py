@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
-    'rest_framework'
+    'rest_framework',
     'corsheaders',
 ]
 
@@ -84,16 +84,16 @@ WSGI_APPLICATION = 'centodjango.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cento_db',
-        'USER': 'maxim', #correct for server
+        'NAME': 'Cento_database',
+        'USER': 'postgres', # correct for local
         'PASSWORD': 'vfrtynjc2005',
         'HOST': 'localhost',
         'PORT': '5432',
     }
 
-#'NAME': 'Cento_database',
-#'USER': 'postgres', # correct for local
 
+#'NAME': 'cento_db',
+#'USER': 'maxim', #correct for server
 }
 #python manage.py makemigrations
 

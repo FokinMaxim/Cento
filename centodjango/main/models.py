@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from django.db import models
+from django.db.models import DateTimeField
 
 
 class TeachersVariantStudent(models.Model):
@@ -38,8 +41,8 @@ class Exam(models.Model):
     def __str__(self):
         return 'Экзамен'
 
-class PointsOfTask(models.Model):
-    code_of_number = models.CharField('Код типа', max_length=10, primary_key=True)
+class TypeOfTask(models.Model):
+    code_of_type = models.CharField('Код типа', max_length=10, primary_key=True)
     points = models.IntegerField('Баллы')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT)
 
@@ -48,18 +51,21 @@ class PointsOfTask(models.Model):
 
 class Task(models.Model):
     task_id = models.CharField('Код номера', max_length=10, primary_key=True)
-    fk_code_of_number = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='code_of_number')
+    fk_code_of_type = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='code_of_number')
+    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='task_creator', default='112211')
+    visibility = models.BooleanField('Доступность')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_task')
     description = models.TextField('Описание задания')
     image_path = models.CharField('Путь до изображения', max_length=128)
     correct_answer = models.CharField('Правильный ответ', max_length=128)
+    file_path = models.CharField('Путь до файла', max_length=128, default='113311')
 
     def __str__(self):
         return 'Номер'
 
 class Variant(models.Model):
     variant_id = models.CharField('Код варианта', max_length=10, primary_key=True)
-    creator_id = models.CharField('Код создателя', max_length=10)
+    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='variant_creator')
     visibility = models.BooleanField('Доступность')
     time_limit = models.TimeField('Временное ограничение')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_v')
@@ -78,9 +84,10 @@ class Tariff(models.Model):
 
 class Student(models.Model):
     student_id = models.CharField('Код ученика', max_length=10, primary_key=True)
-    hash_login = models.CharField('Хэш логина', max_length=128)
-    hash_password = models.CharField('Хэш пароля', max_length=128)
-    hash_email = models.CharField('Хэш почты', max_length=128)
+    hash_password = models.CharField('Хэш пароля', max_length=32)
+    name = models.CharField('Имя', max_length=32, default='nam')
+    surname = models.CharField('Фамилия', max_length=32, default='sur')
+    email = models.CharField('Почта', max_length=128, default='em')
     studying_year = models.IntegerField('Год обучения')
 
     def __str__(self):
@@ -88,9 +95,11 @@ class Student(models.Model):
 
 class Teacher(models.Model):
     teacher_id = models.CharField('Код учителя', max_length=10, primary_key=True)
-    hash_login = models.CharField('Хэш логина', max_length=128)
+    name = models.CharField('Имя', max_length=32, default='nam')
+    surname = models.CharField('Фамилия', max_length=32, default='sur')
     hash_password = models.CharField('Хэш пароля', max_length=128)
-    hash_email = models.CharField('Хэш почты', max_length=128)
+    email = models.CharField('Почта', max_length=128, default='em')
+    tariff_end_date = DateTimeField(default=datetime.now())
     fk_tariff_id = models.ForeignKey('Tariff', on_delete=models.PROTECT)
 
     def __str__(self):
