@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from django.db import models
 from django.db.models import DateTimeField
 
@@ -12,27 +11,6 @@ class TeachersVariantStudent(models.Model):
 
     def __str__(self):
         return 'Связь, учителя ученика и варианта'
-
-class VariantToTask(models.Model):
-    fk_variant_id = models.ForeignKey('Variant', on_delete=models.PROTECT, related_name='variant_task')
-    fk_task_id = models.ForeignKey('Task', on_delete=models.PROTECT, related_name='taskr_v')
-
-    def __str__(self):
-        return 'Связь варианта и номера'
-
-class TeachersToStudent(models.Model):
-    fk_teacher_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='teacher_s')
-    fk_student_id = models.ForeignKey('Student', on_delete=models.PROTECT, related_name='student_t')
-
-    def __str__(self):
-        return 'Связь учителя и ученика'
-
-class TeachersToExam(models.Model):
-    fk_teacher_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='teacher_e')
-    fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_teacher')
-
-    def __str__(self):
-        return 'Связь учителя и экзамена'
 
 class Exam(models.Model):
     exam_id = models.CharField('Код экзамина', max_length=10, primary_key=True)
@@ -69,6 +47,7 @@ class Variant(models.Model):
     visibility = models.BooleanField('Доступность')
     time_limit = models.TimeField('Временное ограничение')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_v')
+    tasks = models.ManyToManyField(Task, related_name='TeacherToStudent')
 
     def __str__(self):
         return 'Вариант'
@@ -87,7 +66,7 @@ class Student(models.Model):
     hash_password = models.CharField('Хэш пароля', max_length=32)
     name = models.CharField('Имя', max_length=32, default='nam')
     surname = models.CharField('Фамилия', max_length=32, default='sur')
-    email = models.CharField('Почта', max_length=128, default='em')
+    email = models.CharField('Почта', max_length=128)
     studying_year = models.IntegerField('Год обучения')
 
     def __str__(self):
@@ -99,8 +78,10 @@ class Teacher(models.Model):
     surname = models.CharField('Фамилия', max_length=32, default='sur')
     hash_password = models.CharField('Хэш пароля', max_length=128)
     email = models.CharField('Почта', max_length=128, default='em')
-    tariff_end_date = DateTimeField(default=datetime.now())
+    tariff_end_date = DateTimeField('Конец Тарифа')
     fk_tariff_id = models.ForeignKey('Tariff', on_delete=models.PROTECT)
+    students = models.ManyToManyField(Student, related_name='TeacherToStudent')
+    exams = models.ManyToManyField(Exam, related_name='TeacherToExam')
 
     def __str__(self):
         return 'Учитель'
