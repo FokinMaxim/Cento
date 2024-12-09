@@ -91,9 +91,9 @@ DATABASES = {
         'PORT': '5432',
     }
 
-
 #'NAME': 'Cento_database',
 #'USER': 'postgres', # correct for local
+
 
 }
 #python manage.py makemigrations

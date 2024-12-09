@@ -23,20 +23,20 @@ class VariantSerializer(serializers.ModelSerializer):
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
-        Task = Variant
+        model = Task
         fields = '__all__'
 
 class TypeOfTaskSerializer(serializers.ModelSerializer):
     class Meta:
-        Task = Variant
+        model = TypeOfTask
         fields = '__all__'
 
 class ExamSerializer(serializers.ModelSerializer):
     class Meta:
-        Task = Exam
+        model = Exam
         fields = '__all__'
 
 class TeachersVariantStudentSerializer(serializers.ModelSerializer):
     class Meta:
-        Task = TeachersVariantStudent
+        model = TeachersVariantStudent
         fields = '__all__'
