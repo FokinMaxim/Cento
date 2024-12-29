@@ -92,8 +92,6 @@ DATABASES = {
         'PORT': '5432',
     }
 
-#
-#
 #'NAME': 'cento_db',
 #'USER': 'maxim', #correct for server
 

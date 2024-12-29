@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import DateTimeField
@@ -14,14 +13,14 @@ class TeachersVariantStudent(models.Model):
     dead_line = models.DateTimeField('Дедлайн')
 
     def __str__(self):
-        return 'Связь, учителя ученика и варианта'
+        return f"Учитель: {self.fk_teacher_id}, Ученик: {self.fk_student_id}, Вариант: {self.fk_variant_id}"
 
 class Exam(models.Model):
     exam_id = models.CharField('Код экзамина', max_length=10, primary_key=True)
     exam_name = models.CharField('Название экзамена', max_length=128)
 
     def __str__(self):
-        return 'Экзамен'
+        return self.exam_name
 
 class TypeOfTask(models.Model):
     code_of_type = models.CharField('Код типа', max_length=10, primary_key=True)
@@ -29,7 +28,7 @@ class TypeOfTask(models.Model):
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT)
 
     def __str__(self):
-        return 'Баллы за номер'
+        return self.code_of_type
 
 class Task(models.Model):
     task_id = models.CharField('Код номера', max_length=10, primary_key=True)
@@ -43,7 +42,7 @@ class Task(models.Model):
     file_path = models.CharField('Путь до файла', max_length=128, default='113311')
 
     def __str__(self):
-        return 'Номер'
+        return self.task_id
 
 class Variant(models.Model):
     variant_id = models.CharField('Код варианта', max_length=10, primary_key=True)
@@ -54,7 +53,7 @@ class Variant(models.Model):
     tasks = models.ManyToManyField(Task, related_name='TeacherToStudent')
 
     def __str__(self):
-        return 'Вариант'
+        return self.variant_id
 
 class Tariff(models.Model):
     tariff_id = models.CharField('Код тарифа', max_length=10, primary_key=True)
@@ -63,7 +62,7 @@ class Tariff(models.Model):
     tariff_info = models.TextField('Информация о тарифе')
 
     def __str__(self):
-        return 'Тариф'
+        return self.tariff_name
 
 
 class Account(AbstractUser):
