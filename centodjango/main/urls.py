@@ -1,4 +1,6 @@
 from rest_framework import  routers
+from rest_framework_simplejwt.views import TokenRefreshView
+
 from .views import *
 from django.urls import path, include
 
@@ -12,7 +14,14 @@ router.register('api/task', TaskViewSet, 'task')
 router.register('api/task_type', TypeOfTaskViewSet, 'task_type')
 router.register('api/teacher_variant_student', TeachersVariantStudentViewSet, 'teacher_variant_student')
 
-urlpatterns = router.urls #vfrtynjc2005
-#urlpatterns = [
-#    path('api/student', StudentView.as_view(), name='a')
-#]
+#urlpatterns = router.urls #vfrtynjc2005
+urlpatterns = [
+    path('', include(router.urls)),
+
+    # Регистрация
+    path('api/register/', RegisterView.as_view(), name='register'),
+
+    # Аутентификация
+    path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+]

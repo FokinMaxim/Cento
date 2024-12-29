@@ -1,6 +1,10 @@
 from datetime import datetime
+
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import DateTimeField
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class TeachersVariantStudent(models.Model):
@@ -61,27 +65,65 @@ class Tariff(models.Model):
     def __str__(self):
         return 'Тариф'
 
+
+class Account(AbstractUser):
+    # Общие поля
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    role = models.CharField(max_length=20, choices=[('student', 'Ученик'), ('teacher', 'Учитель')])
+    # Указываем уникальные related_name для groups и user_permissions
+    groups = models.ManyToManyField(
+        'auth.Group',
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
+        related_name="account_groups",  # Уникальное имя для обратной ссылки
+        related_query_name="account",
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        verbose_name='user permissions',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        related_name="account_user_permissions",  # Уникальное имя для обратной ссылки
+        related_query_name="account",
+    )
+
+    def __str__(self):
+        return self.username
+
+
 class Student(models.Model):
-    student_id = models.CharField('Код ученика', max_length=10, primary_key=True)
-    hash_password = models.CharField('Хэш пароля', max_length=32)
-    name = models.CharField('Имя', max_length=32, default='nam')
-    surname = models.CharField('Фамилия', max_length=32, default='sur')
-    email = models.CharField('Почта', max_length=128)
+    account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='student', default=None)
     studying_year = models.IntegerField('Год обучения')
 
     def __str__(self):
-        return 'Ученик'
+        return self.account.username
+
 
 class Teacher(models.Model):
-    teacher_id = models.CharField('Код учителя', max_length=10, primary_key=True)
-    name = models.CharField('Имя', max_length=32, default='nam')
-    surname = models.CharField('Фамилия', max_length=32, default='sur')
-    hash_password = models.CharField('Хэш пароля', max_length=128)
-    email = models.CharField('Почта', max_length=128, default='em')
-    tariff_end_date = DateTimeField('Конец Тарифа')
-    fk_tariff_id = models.ForeignKey('Tariff', on_delete=models.PROTECT)
-    students = models.ManyToManyField(Student, related_name='TeacherToStudent')
-    exams = models.ManyToManyField(Exam, related_name='TeacherToExam')
+    account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='teacher', default=None)
+    tariff_end_date = models.DateTimeField('Конец Тарифа', blank=True, null=True)
+    fk_tariff_id = models.ForeignKey('Tariff', on_delete=models.PROTECT, related_name='teacher_tariff')
+    students = models.ManyToManyField('Student', related_name='teacher_students')
+    exams = models.ManyToManyField('Exam', related_name='teacher_exams')
 
     def __str__(self):
-        return 'Учитель'
+        return self.account.username
+
+
+@receiver(post_save, sender=Account)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        if instance.role == 'student':
+            Student.objects.create(account=instance)
+        elif instance.role == 'teacher':
+            Teacher.objects.create(account=instance)
+
+@receiver(post_save, sender=Account)
+def save_user_profile(sender, instance, **kwargs):
+    if instance.role == 'student':
+        instance.student.save()
+    elif instance.role == 'teacher':
+        instance.teacher.save()
+

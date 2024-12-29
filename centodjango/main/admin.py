@@ -1,17 +1,22 @@
 from django.contrib import admin
 from .models import *
 
+@admin.register(Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'role', 'phone_number')
+    list_filter = ('role',)
+    search_fields = ('username', 'email')
+
+
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ['student_id', 'hash_password', 'name', 'surname', 'email', 'studying_year']
-    list_display_links = ['student_id']
-    search_fields = ['student_id', 'hash_password', 'name', 'surname', 'email', 'studying_year']
-    list_filter = ['student_id', 'hash_password', 'name', 'surname', 'email', 'studying_year']
+    list_display = ['account', 'studying_year']
+    list_filter = ('studying_year',)
+    search_fields = ('account__username', 'account__email')
 
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ['teacher_id', 'hash_password', 'name', 'surname', 'email', 'tariff_end_date', 'fk_tariff_id']
-    list_display_links = ['teacher_id']
-    search_fields = ['teacher_id', 'hash_password', 'name', 'surname', 'email', 'tariff_end_date', 'fk_tariff_id']
-    list_filter = ['teacher_id', 'hash_password', 'name', 'surname', 'email', 'tariff_end_date', 'fk_tariff_id']
+    list_display = ['account', 'tariff_end_date', 'fk_tariff_id']
+    list_filter = ('tariff_end_date',)
+    search_fields = ('account__username', 'account__email')
 
 class VariantAdmin(admin.ModelAdmin):
     list_display = ['variant_id', 'creator_id', 'visibility', 'time_limit', 'fk_exam_id']
