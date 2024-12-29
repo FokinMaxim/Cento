@@ -24,4 +24,7 @@ urlpatterns = [
     # Аутентификация
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Получение полной информации об ученике
+    path('api/get-student/<int:student_id>/', getStudent, name='get-student'),
 ]
