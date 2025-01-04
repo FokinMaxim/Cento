@@ -69,10 +69,16 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class RoleBasedRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     role = serializers.CharField(write_only=True)
+    tariff_id = serializers.IntegerField(write_only=True, required=True)  # Добавляем поле tariff_id
+    exams = serializers.ListField(  # Добавляем поле exams для передачи списка ID экзаменов
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
 
     class Meta:
         model = Account
-        fields = ('username', 'email', 'password', 'role', 'phone_number')
+        fields = ('username', 'email', 'password', 'role', 'phone_number', 'tariff_id', 'exams')
 
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password'])

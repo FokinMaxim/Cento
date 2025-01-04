@@ -103,20 +103,3 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.account.username
-
-
-@receiver(post_save, sender=Account)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        if instance.role == 'student':
-            Student.objects.create(account=instance)
-        elif instance.role == 'teacher':
-            Teacher.objects.create(account=instance)
-
-@receiver(post_save, sender=Account)
-def save_user_profile(sender, instance, **kwargs):
-    if instance.role == 'student':
-        instance.student.save()
-    elif instance.role == 'teacher':
-        instance.teacher.save()
-

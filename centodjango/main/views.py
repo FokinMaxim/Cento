@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -93,6 +95,7 @@ def getStudent(request, student_id):
 
 class RegisterStudentView(APIView):
     def post(self, request):
+        print('ЗАЙЗАЗАЙЗАЗАЙЗАЗАЙЗАЙ')
         serializer = RoleBasedRegisterSerializer(data=request.data)
         if serializer.is_valid():
             # Создаем аккаунт
@@ -101,10 +104,11 @@ class RegisterStudentView(APIView):
                 email=serializer.validated_data['email'],
                 password=serializer.validated_data['password'],
                 phone_number=serializer.validated_data.get('phone_number', ''),
-                role='student'  # Устанавливаем роль ученика
+                role='ученик'  # Устанавливаем роль ученика
             )
             # Создаем профиль ученика
-            studying_year = request.data.get('studying_year')  # Получаем год обучения из запроса
+            studying_year = request.data.get('studying_year')
+            print(studying_year)# Получаем год обучения из запроса
             Student.objects.create(account=account, studying_year=studying_year)
 
             return Response({"message": "Student registered successfully"}, status=status.HTTP_201_CREATED)
@@ -121,15 +125,25 @@ class RegisterTeacherView(APIView):
                 email=serializer.validated_data['email'],
                 password=serializer.validated_data['password'],
                 phone_number=serializer.validated_data.get('phone_number', ''),
-                role='teacher'  # Устанавливаем роль учителя
+                role='учитель'  # Устанавливаем роль учителя
             )
-
             # Получаем данные для модели Teacher
             tariff_id = request.data.get('tariff_id')  # Получаем ID тарифа из запроса
             tariff = Tariff.objects.get(id=tariff_id)  # Находим объект Tariff по id
 
-            # Создаем профиль учителя
-            Teacher.objects.create(account=account, fk_tariff_id=tariff)
+            # Вычисляем дату окончания тарифа (текущая дата + 6 месяцев)
+            tariff_end_date = datetime.now() + timedelta(days=180)  # 180 дней = ~6 месяцев
 
+            # Создаем профиль учителя
+            teacher = Teacher.objects.create(
+                account=account,
+                fk_tariff_id=tariff,
+                tariff_end_date=tariff_end_date
+            )
+            # Добавляем экзамены, если они переданы в запросе
+            exam_ids = request.data.get('exams', [])  # Получаем список ID экзаменов
+            if exam_ids:
+                exams = Exam.objects.filter(id__in=exam_ids)  # Находим объекты Exam по ID
+                teacher.exams.set(exams)  # Устанавливаем экзамены для учителя
             return Response({"message": "Teacher registered successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
