@@ -1,65 +1,49 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
-from  .models import *
+from .models import *
 from .serializer import *
 from rest_framework import viewsets, permissions, generics, status
 
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
-    #permissions_classes = [
-    #    permissions.AllowAny
-    #]
     serializer_class = StudentSerializer
+
 
 class TeacherViewSet(viewsets.ModelViewSet):
     queryset = Teacher.objects.all()
-    #permissions_classes = [
-    #    permissions.AllowAny
-    #]
     serializer_class = TeacherSerializer
+
 
 class TariffViewSet(viewsets.ModelViewSet):
     queryset = Tariff.objects.all()
-    #permissions_classes = [
-    #    permissions.AllowAny
-    #]
     serializer_class = TariffSerializer
+
 
 class VariantViewSet(viewsets.ModelViewSet):
     queryset = Variant.objects.all()
-    #permissions_classes = [
-    #    permissions.AllowAny
-    #]
     serializer_class = VariantSerializer
+
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
-    #permissions_classes = [
-    #    permissions.AllowAny
-    #]
     serializer_class = TaskSerializer
+
 
 class TypeOfTaskViewSet(viewsets.ModelViewSet):
     queryset = TypeOfTask.objects.all()
-    #permissions_classes = [
-    #    permissions.AllowAny
-    #]
     serializer_class = TypeOfTaskSerializer
+
 
 class ExamViewSet(viewsets.ModelViewSet):
     queryset = Exam.objects.all()
-    #permissions_classes = [
-    #    permissions.AllowAny
-    #]
     serializer_class = ExamSerializer
+
 
 class TeachersVariantStudentViewSet(viewsets.ModelViewSet):
     queryset = TeachersVariantStudent.objects.all()
-    #permissions_classes = [
-    #    permissions.AllowAny
-    #]
     serializer_class = TeachersVariantStudentSerializer
 
 
@@ -70,6 +54,7 @@ class RegisterView(generics.CreateAPIView):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
 
 @api_view(['GET'])
 def getStudent(request, student_id):
@@ -86,14 +71,15 @@ def getStudent(request, student_id):
     variants_data = []
     for variant in assigned_variants:
         variants_data.append({
-            "variant_id": variant.fk_variant_id.variant_id,
+            "variant_id": variant.fk_variant_id.id,  # Используем id вместо variant_id
             "dead_line": variant.dead_line,
             "teacher": variant.fk_teacher_id.account.username
         })
 
     # Получение учителей, к которым привязан ученик
     teachers = student.teacher_students.all()
-    teachers_data = [{"teacher_id": teacher.account.id, "teacher_name": teacher.account.username} for teacher in teachers]
+    teachers_data = [{"teacher_id": teacher.account.id, "teacher_name": teacher.account.username} for teacher in
+                     teachers]
 
     # Формирование ответа
     response_data = {
@@ -103,3 +89,47 @@ def getStudent(request, student_id):
     }
 
     return Response(response_data, status=status.HTTP_200_OK)
+
+
+class RegisterStudentView(APIView):
+    def post(self, request):
+        serializer = RoleBasedRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            # Создаем аккаунт
+            account = Account.objects.create(
+                username=serializer.validated_data['username'],
+                email=serializer.validated_data['email'],
+                password=serializer.validated_data['password'],
+                phone_number=serializer.validated_data.get('phone_number', ''),
+                role='student'  # Устанавливаем роль ученика
+            )
+            # Создаем профиль ученика
+            studying_year = request.data.get('studying_year')  # Получаем год обучения из запроса
+            Student.objects.create(account=account, studying_year=studying_year)
+
+            return Response({"message": "Student registered successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterTeacherView(APIView):
+    def post(self, request):
+        serializer = RoleBasedRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            # Создаем аккаунт
+            account = Account.objects.create(
+                username=serializer.validated_data['username'],
+                email=serializer.validated_data['email'],
+                password=serializer.validated_data['password'],
+                phone_number=serializer.validated_data.get('phone_number', ''),
+                role='teacher'  # Устанавливаем роль учителя
+            )
+
+            # Получаем данные для модели Teacher
+            tariff_id = request.data.get('tariff_id')  # Получаем ID тарифа из запроса
+            tariff = Tariff.objects.get(id=tariff_id)  # Находим объект Tariff по id
+
+            # Создаем профиль учителя
+            Teacher.objects.create(account=account, fk_tariff_id=tariff)
+
+            return Response({"message": "Teacher registered successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -16,22 +16,19 @@ class TeachersVariantStudent(models.Model):
         return f"Учитель: {self.fk_teacher_id}, Ученик: {self.fk_student_id}, Вариант: {self.fk_variant_id}"
 
 class Exam(models.Model):
-    exam_id = models.CharField('Код экзамина', max_length=10, primary_key=True)
     exam_name = models.CharField('Название экзамена', max_length=128)
 
     def __str__(self):
         return self.exam_name
 
 class TypeOfTask(models.Model):
-    code_of_type = models.CharField('Код типа', max_length=10, primary_key=True)
     points = models.IntegerField('Баллы')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT)
 
     def __str__(self):
-        return self.code_of_type
+        return self.id
 
 class Task(models.Model):
-    task_id = models.CharField('Код номера', max_length=10, primary_key=True)
     fk_code_of_type = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='code_of_number')
     creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='task_creator', default='112211')
     visibility = models.BooleanField('Доступность')
@@ -42,10 +39,9 @@ class Task(models.Model):
     file_path = models.CharField('Путь до файла', max_length=128, default='113311')
 
     def __str__(self):
-        return self.task_id
+        return self.id
 
 class Variant(models.Model):
-    variant_id = models.CharField('Код варианта', max_length=10, primary_key=True)
     creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='variant_creator')
     visibility = models.BooleanField('Доступность')
     time_limit = models.TimeField('Временное ограничение')
@@ -53,10 +49,9 @@ class Variant(models.Model):
     tasks = models.ManyToManyField(Task, related_name='TeacherToStudent')
 
     def __str__(self):
-        return self.variant_id
+        return self.id
 
 class Tariff(models.Model):
-    tariff_id = models.CharField('Код тарифа', max_length=10, primary_key=True)
     tariff_name = models.CharField('Название тарифа', max_length=128)
     price = models.FloatField('Цена тарифа')
     tariff_info = models.TextField('Информация о тарифе')
@@ -66,7 +61,6 @@ class Tariff(models.Model):
 
 
 class Account(AbstractUser):
-    # Общие поля
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     role = models.CharField(max_length=20, choices=[('student', 'Ученик'), ('teacher', 'Учитель')])

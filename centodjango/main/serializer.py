@@ -65,3 +65,15 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['role'] = user.role
         return token
+
+class RoleBasedRegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    role = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Account
+        fields = ('username', 'email', 'password', 'role', 'phone_number')
+
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)

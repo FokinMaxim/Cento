@@ -21,6 +21,9 @@ urlpatterns = [
     # Регистрация
     path('api/register/', RegisterView.as_view(), name='register'),
 
+    path('api/register/student/', RegisterStudentView.as_view(), name='register-student'),
+    path('api/register/teacher/', RegisterTeacherView.as_view(), name='register-teacher'),
+
     # Аутентификация
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
