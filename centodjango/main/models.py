@@ -29,7 +29,7 @@ class TypeOfTask(models.Model):
         return self.id
 
 class Task(models.Model):
-    fk_code_of_type = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='code_of_number')
+    fk_code_of_type = models.ForeignKey('TypeOfTask', on_delete=models.PROTECT, related_name='code_of_number')
     creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='task_creator', default='112211')
     visibility = models.BooleanField('Доступность')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_task')
@@ -47,6 +47,11 @@ class Variant(models.Model):
     time_limit = models.TimeField('Временное ограничение')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_v')
     tasks = models.ManyToManyField(Task, related_name='TeacherToStudent')
+    status = models.CharField(max_length=20,
+                              choices=[ ('задано', 'Задано'),
+                                        ('на проверке', 'На проверке'),
+                                        ('проверено', 'Проверено'), ],
+                              default='задано')
 
     def __str__(self):
         return self.id
@@ -63,7 +68,7 @@ class Tariff(models.Model):
 class Account(AbstractUser):
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-    role = models.CharField(max_length=20, choices=[('student', 'Ученик'), ('teacher', 'Учитель')])
+    role = models.CharField(max_length=20, choices=[('ученик', 'Ученик'), ('учитель', 'Учитель')])
     # Указываем уникальные related_name для groups и user_permissions
     groups = models.ManyToManyField(
         'auth.Group',
@@ -89,6 +94,7 @@ class Account(AbstractUser):
 class Student(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='student', default=None)
     studying_year = models.IntegerField('Год обучения')
+    exams = models.ManyToManyField('Exam', related_name='student_exams')
 
     def __str__(self):
         return self.account.username
@@ -100,6 +106,7 @@ class Teacher(models.Model):
     fk_tariff_id = models.ForeignKey('Tariff', on_delete=models.PROTECT, related_name='teacher_tariff')
     students = models.ManyToManyField('Student', related_name='teacher_students')
     exams = models.ManyToManyField('Exam', related_name='teacher_exams')
+    education = models.TextField('Образование')
 
     def __str__(self):
         return self.account.username

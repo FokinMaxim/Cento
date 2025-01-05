@@ -1,6 +1,6 @@
 from datetime import timedelta
-
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -59,6 +59,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def getStudent(request, student_id):
     try:
         student = Student.objects.get(id=student_id)
@@ -95,20 +96,20 @@ def getStudent(request, student_id):
 
 class RegisterStudentView(APIView):
     def post(self, request):
-        print('ЗАЙЗАЗАЙЗАЗАЙЗАЗАЙЗАЙ')
         serializer = RoleBasedRegisterSerializer(data=request.data)
         if serializer.is_valid():
+            #хэшируем пароль
+            password = make_password(serializer.validated_data['password'])
             # Создаем аккаунт
             account = Account.objects.create(
                 username=serializer.validated_data['username'],
                 email=serializer.validated_data['email'],
-                password=serializer.validated_data['password'],
+                password=password,
                 phone_number=serializer.validated_data.get('phone_number', ''),
                 role='ученик'  # Устанавливаем роль ученика
             )
             # Создаем профиль ученика
             studying_year = request.data.get('studying_year')
-            print(studying_year)# Получаем год обучения из запроса
             Student.objects.create(account=account, studying_year=studying_year)
 
             return Response({"message": "Student registered successfully"}, status=status.HTTP_201_CREATED)
@@ -119,11 +120,12 @@ class RegisterTeacherView(APIView):
     def post(self, request):
         serializer = RoleBasedRegisterSerializer(data=request.data)
         if serializer.is_valid():
+            password = make_password(serializer.validated_data['password'])
             # Создаем аккаунт
             account = Account.objects.create(
                 username=serializer.validated_data['username'],
                 email=serializer.validated_data['email'],
-                password=serializer.validated_data['password'],
+                password=password,
                 phone_number=serializer.validated_data.get('phone_number', ''),
                 role='учитель'  # Устанавливаем роль учителя
             )
