@@ -5,8 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import *
+from .permissions import *
 from .serializer import *
-from rest_framework import viewsets, permissions, generics, status
+from rest_framework import viewsets, generics, status
+
 
 
 class StudentViewSet(viewsets.ModelViewSet):
@@ -59,7 +61,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsStudentOrTeacherOfStudent])
 def getStudent(request, student_id):
     try:
         student = Student.objects.get(id=student_id)
