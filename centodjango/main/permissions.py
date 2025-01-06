@@ -16,7 +16,7 @@ class IsStudentOrTeacherOfStudent(permissions.BasePermission):
         except Student.DoesNotExist:
             return False
 
-        # Если пользователь - ученик, проверяем, что это его профиль
+
         if request.user.role == 'ученик':
             return student.account.id == request.user.id
 
