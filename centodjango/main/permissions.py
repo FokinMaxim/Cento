@@ -30,3 +30,11 @@ class IsStudentOrTeacherOfStudent(permissions.BasePermission):
 
         # Во всех остальных случаях доступ запрещен
         return False
+
+class IsTeacher(permissions.BasePermission):
+    """
+    Разрешение, которое позволяет доступ только пользователям с ролью 'учитель'.
+    """
+
+    def has_permission(self, request, view):
+        return request.user.role == 'учитель'
