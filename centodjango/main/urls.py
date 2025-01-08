@@ -32,4 +32,6 @@ urlpatterns = [
     path('api/get-student/<int:student_id>/', getStudent, name='get-student'),
     # Добавление ученика учителю
     path('api/add-student/', AddStudentToTeacherView.as_view(), name='add-student'),
+    #Добавление задания
+    path('api/create-task/', create_task, name='create-task'),
 ]

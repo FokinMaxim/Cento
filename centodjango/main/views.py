@@ -1,4 +1,6 @@
 from datetime import timedelta
+
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -155,7 +157,6 @@ class RegisterTeacherView(APIView):
 
 @permission_classes([IsAuthenticated, IsTeacher])
 class AddStudentToTeacherView(APIView):
-
     def post(self, request):
         # Получаем почту ученика из запроса
         student_email = request.data.get('student_email')
@@ -173,11 +174,39 @@ class AddStudentToTeacherView(APIView):
             student = Student.objects.get(account=student_account)
         except Student.DoesNotExist:
             return Response({"error": "Student profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
         # Находим учителя, который отправил запрос
         teacher = Teacher.objects.get(account=request.user)
-
         # Добавляем ученика в список студентов учителя
         teacher.students.add(student)
-
         return Response({"message": "Student added successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def create_task(request):
+    data = request.data
+    # Получаем объект учителя, который создает задание
+    teacher = get_object_or_404(Teacher, account=request.user)
+    # Проверяем, что переданные ID типа задания и экзамена существуют
+    type_of_task_id = data.get('fk_code_of_type')
+    exam_id = data.get('fk_exam_id')
+
+    if not type_of_task_id or not exam_id:
+        return Response({"error": "Type of task and exam IDs are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    type_of_task = get_object_or_404(TypeOfTask, id=type_of_task_id)
+    exam = get_object_or_404(Exam, id=exam_id)
+
+    # Создаем задание
+    task = Task.objects.create(
+        fk_code_of_type=type_of_task,
+        creator_id=teacher,
+        visibility=data.get('visibility', True),
+        fk_exam_id=exam,
+        description=data.get('description', ''),
+        image_path=data.get('image_path', ''),
+        correct_answer=data.get('correct_answer', ''),
+        file_path=data.get('file_path', '')
+    )
+    serializer = TaskSerializer(task)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -22,6 +22,7 @@ class Exam(models.Model):
         return self.exam_name
 
 class TypeOfTask(models.Model):
+    number_of_task = models.IntegerField('Номер задание')
     points = models.IntegerField('Баллы')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT)
 
