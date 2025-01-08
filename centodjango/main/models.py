@@ -27,21 +27,21 @@ class TypeOfTask(models.Model):
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 class Task(models.Model):
     fk_code_of_type = models.ForeignKey('TypeOfTask', on_delete=models.PROTECT, related_name='code_of_number')
     creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT,
-                                   related_name='task_creator', default='112211', nullable=True)
+                                   related_name='task_creator', default='112211', null=True)
     visibility = models.BooleanField('Доступность')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_task')
     description = models.TextField('Описание задания')
-    image_path = models.CharField('Путь до изображения', max_length=128)
+    image_path = models.CharField('Путь до изображения', max_length=128,  null=True)
     correct_answer = models.CharField('Правильный ответ', max_length=128)
-    file_path = models.CharField('Путь до файла', max_length=128, default='113311')
+    file_path = models.CharField('Путь до файла', max_length=128, default='113311', null=True)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 class Variant(models.Model):
     creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='variant_creator')
@@ -56,7 +56,7 @@ class Variant(models.Model):
                               default='задано')
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 class Tariff(models.Model):
     tariff_name = models.CharField('Название тарифа', max_length=128)
