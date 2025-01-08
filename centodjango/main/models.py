@@ -44,16 +44,16 @@ class Task(models.Model):
         return str(self.id)
 
 class Variant(models.Model):
-    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='variant_creator')
+    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='variant_creator',  null=True)
     visibility = models.BooleanField('Доступность')
-    time_limit = models.TimeField('Временное ограничение')
+    time_limit = models.TimeField('Временное ограничение',  null=True)
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_v')
     tasks = models.ManyToManyField(Task, related_name='TeacherToStudent')
     status = models.CharField(max_length=20,
                               choices=[ ('задано', 'Задано'),
                                         ('на проверке', 'На проверке'),
                                         ('проверено', 'Проверено'), ],
-                              default='задано')
+                              default='задано',  null=True)
 
     def __str__(self):
         return str(self.id)

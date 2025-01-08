@@ -34,4 +34,7 @@ urlpatterns = [
     path('api/add-student/', AddStudentToTeacherView.as_view(), name='add-student'),
     #Добавление задания
     path('api/create-task/', create_task, name='create-task'),
+
+    path('api/combined-variants/', CombinedVariantsView.as_view(), name='combined-variants'),
+    path('api/combined-tasks/', CombinedTasksView.as_view(), name='combined-tasks')
 ]

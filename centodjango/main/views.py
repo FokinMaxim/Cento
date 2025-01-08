@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -210,3 +211,41 @@ def create_task(request):
     )
     serializer = TaskSerializer(task)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@permission_classes([IsAuthenticated])
+class CombinedTasksView(APIView):
+    def get(self, request):
+        user = request.user
+        tasks = Task.objects.filter(visibility=True)
+        # Если пользователь - учитель, добавляем его задания
+        if user.role == 'учитель':
+            try:
+                teacher = Teacher.objects.get(account=user)
+                teacher_tasks = Task.objects.filter(creator_id=teacher)
+                tasks = tasks | teacher_tasks
+            except Teacher.DoesNotExist:
+                pass  # Если пользователь не является учителем, просто пропускаем
+
+        # Сериализуем все задачи и возвращаем их
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@permission_classes([IsAuthenticated])
+class CombinedVariantsView(APIView):
+    def get(self, request):
+        user = request.user
+        variants = Variant.objects.filter(visibility=True)
+        # Если пользователь - учитель, добавляем его варианты
+        if user.role == 'учитель':
+            try:
+                teacher = Teacher.objects.get(account=user)
+                teacher_variants = Variant.objects.filter(creator_id=teacher)
+                variants = variants | teacher_variants
+            except Teacher.DoesNotExist:
+                pass  # Если пользователь не является учителем, просто пропускаем
+
+        # Сериализуем все варианты и возвращаем их
+        serializer = VariantSerializer(variants, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
