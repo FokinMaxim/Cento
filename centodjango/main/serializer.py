@@ -66,6 +66,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['role'] = user.role
         return token
 
+    def validate(self, attrs):
+        # Получаем стандартные данные (access и refresh токены)
+        data = super().validate(attrs)
+        # Добавляем роль пользователя в ответ
+        data['role'] = self.user.role
+        return data
+
 class RoleBasedRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
