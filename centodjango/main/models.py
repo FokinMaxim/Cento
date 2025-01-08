@@ -31,7 +31,8 @@ class TypeOfTask(models.Model):
 
 class Task(models.Model):
     fk_code_of_type = models.ForeignKey('TypeOfTask', on_delete=models.PROTECT, related_name='code_of_number')
-    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='task_creator', default='112211')
+    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT,
+                                   related_name='task_creator', default='112211', nullable=True)
     visibility = models.BooleanField('Доступность')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_task')
     description = models.TextField('Описание задания')
