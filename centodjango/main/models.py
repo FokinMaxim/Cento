@@ -11,6 +11,11 @@ class TeachersVariantStudent(models.Model):
     fk_student_id = models.ForeignKey('Student', on_delete=models.PROTECT, related_name='student_t_v')
     fk_variant_id = models.ForeignKey('Variant', on_delete=models.PROTECT, related_name='variant_t_s')
     dead_line = models.DateTimeField('Дедлайн')
+    status = models.CharField(
+        max_length=20,
+        choices=[('задано', 'Задано'), ('на проверке', 'На проверке'), ('проверено', 'Проверено')],
+        default='задано'
+    )
 
     def __str__(self):
         return f"Учитель: {self.fk_teacher_id}, Ученик: {self.fk_student_id}, Вариант: {self.fk_variant_id}"
@@ -44,16 +49,11 @@ class Task(models.Model):
         return str(self.id)
 
 class Variant(models.Model):
-    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='variant_creator',  null=True)
+    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='variant_creator', null=True)
     visibility = models.BooleanField('Доступность')
-    time_limit = models.TimeField('Временное ограничение',  null=True)
+    time_limit = models.TimeField('Временное ограничение', null=True)
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_v')
     tasks = models.ManyToManyField(Task, related_name='TeacherToStudent')
-    status = models.CharField(max_length=20,
-                              choices=[ ('задано', 'Задано'),
-                                        ('на проверке', 'На проверке'),
-                                        ('проверено', 'Проверено'), ],
-                              default='задано',  null=True)
 
     def __str__(self):
         return str(self.id)

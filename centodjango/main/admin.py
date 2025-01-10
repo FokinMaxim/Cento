@@ -56,9 +56,9 @@ class TypeOfTaskAdmin(admin.ModelAdmin):
 
 
 class TeachersVariantStudentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'fk_teacher_id', 'fk_student_id', 'fk_variant_id', 'dead_line']
+    list_display = ['id', 'fk_teacher_id', 'fk_student_id', 'fk_variant_id', 'dead_line', 'status']
     search_fields = ['fk_teacher_id__account__username', 'fk_student_id__account__username', 'fk_variant_id__id', 'dead_line']
-    list_filter = ['fk_teacher_id', 'fk_student_id', 'fk_variant_id', 'dead_line']
+    list_filter = ['fk_teacher_id', 'fk_student_id', 'fk_variant_id', 'dead_line', 'status']
 
 
 admin.site.register(Student, StudentAdmin)
