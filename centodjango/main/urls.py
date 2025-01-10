@@ -36,5 +36,8 @@ urlpatterns = [
     path('api/create-task/', create_task, name='create-task'),
 
     path('api/combined-variants/', CombinedVariantsView.as_view(), name='combined-variants'),
-    path('api/combined-tasks/', CombinedTasksView.as_view(), name='combined-tasks')
+    path('api/combined-tasks/', CombinedTasksView.as_view(), name='combined-tasks'),
+
+    # Информация о профиле
+    path('api/profile/', ProfileView.as_view(), name='profile'),
 ]
