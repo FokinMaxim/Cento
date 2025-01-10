@@ -300,3 +300,49 @@ class ProfileView(APIView):
                 profile_data["students"] = []
 
         return Response(profile_data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def create_variant(request):
+    data = request.data
+
+    # Получаем объект учителя, который создает вариант
+    teacher = get_object_or_404(Teacher, account=request.user)
+
+    # Проверяем, что переданные ID экзамена и заданий существуют
+    exam_id = data.get('fk_exam_id')
+    task_ids = data.get('tasks', [])
+
+    if not exam_id or not task_ids:
+        return Response({"error": "Exam ID and task IDs are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Получаем объект экзамена
+    exam = get_object_or_404(Exam, id=exam_id)
+
+    # Получаем все задачи по переданным ID
+    tasks = Task.objects.filter(id__in=task_ids)
+
+    # Проверяем, что все задачи принадлежат одному экзамену и этот экзамен соответствует экзамену варианта
+    for task in tasks:
+        if task.fk_exam_id != exam:
+            return Response(
+                {"error": f"Task {task.id} does not belong to the specified exam"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    # Создаем вариант
+    variant = Variant.objects.create(
+        creator_id=teacher,
+        visibility=data.get('visibility', True),
+        time_limit=data.get('time_limit', None),
+        fk_exam_id=exam,
+        status=data.get('status', 'задано')
+    )
+
+    # Добавляем задачи в вариант
+    variant.tasks.set(tasks)
+
+    # Сериализуем и возвращаем созданный вариант
+    serializer = VariantSerializer(variant)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
