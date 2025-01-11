@@ -12,7 +12,6 @@ from .serializer import *
 from rest_framework import viewsets, generics, status
 
 
-
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
@@ -102,7 +101,7 @@ class RegisterStudentView(APIView):
     def post(self, request):
         serializer = RoleBasedRegisterSerializer(data=request.data)
         if serializer.is_valid():
-            #хэшируем пароль
+            # хэшируем пароль
             password = make_password(serializer.validated_data['password'])
             # Создаем аккаунт
             account = Account.objects.create(
@@ -230,6 +229,7 @@ class CombinedTasksView(APIView):
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 @permission_classes([IsAuthenticated])
 class CombinedVariantsView(APIView):
     def get(self, request):
@@ -306,24 +306,31 @@ class ProfileView(APIView):
 @permission_classes([IsAuthenticated, IsTeacher])
 def create_variant(request):
     data = request.data
+
     # Получаем объект учителя, который создает вариант
     teacher = get_object_or_404(Teacher, account=request.user)
+
     # Проверяем, что переданные ID экзамена и заданий существуют
     exam_id = data.get('fk_exam_id')
     task_ids = data.get('tasks', [])
+
     if not exam_id or not task_ids:
         return Response({"error": "Exam ID and task IDs are required"}, status=status.HTTP_400_BAD_REQUEST)
+
     # Получаем объект экзамена
     exam = get_object_or_404(Exam, id=exam_id)
+
     # Получаем все задачи по переданным ID
     tasks = Task.objects.filter(id__in=task_ids)
+
     # Проверяем, что все задачи принадлежат одному экзамену и этот экзамен соответствует экзамену варианта
-    for task in tasks:
-        if task.fk_exam_id != exam:
-            return Response(
-                {"error": f"Task {task.id} does not belong to the specified exam"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    # for task in tasks:
+    #    if task.fk_exam_id != exam:
+    #        return Response(
+    #            {"error": f"Task {task.id} does not belong to the specified exam"},
+    #            status=status.HTTP_400_BAD_REQUEST
+    #        )
+
     # Создаем вариант
     variant = Variant.objects.create(
         creator_id=teacher,
@@ -331,8 +338,147 @@ def create_variant(request):
         time_limit=data.get('time_limit', None),
         fk_exam_id=exam
     )
+
     # Добавляем задачи в вариант
     variant.tasks.set(tasks)
+
     # Сериализуем и возвращаем созданный вариант
     serializer = VariantSerializer(variant)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class CreateHomeworkView(APIView):
+    permission_classes = [IsAuthenticated, IsTeacher]
+
+    def post(self, request):
+        # Получаем данные из запроса
+        variant_id = request.data.get('variant_id')
+        student_email = request.data.get('student_email')
+        dead_line = request.data.get('dead_line')
+
+        # Проверяем, что все необходимые данные переданы
+        if not variant_id or not student_email or not dead_line:
+            return Response({"error": "Variant ID, student email, and deadline are required"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Получаем объект варианта
+        variant = get_object_or_404(Variant, id=variant_id)
+
+        # Получаем объект ученика по почте
+        try:
+            student_account = Account.objects.get(email=student_email, role='ученик')
+            student = Student.objects.get(account=student_account)
+        except Account.DoesNotExist:
+            return Response({"error": "Student with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except Student.DoesNotExist:
+            return Response({"error": "Student profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Получаем объект учителя, который отправил запрос
+        teacher = get_object_or_404(Teacher, account=request.user)
+
+        # Создаем объект TeachersVariantStudent
+        teachers_variant_student = TeachersVariantStudent.objects.create(
+            fk_teacher_id=teacher,
+            fk_student_id=student,
+            fk_variant_id=variant,
+            dead_line=dead_line,
+            status='задано'  # Устанавливаем статус по умолчанию
+        )
+
+        # Сериализуем и возвращаем созданный объект
+        serializer = TeachersVariantStudentSerializer(teachers_variant_student)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+def get_all_variants(request):
+    try:
+        # Получаем все объекты Variant из базы данных
+        variants = Variant.objects.all()
+
+        # Создаем список для хранения данных о вариантах
+        variants_data = []
+
+        for variant in variants:
+            # Сериализуем вариант
+            variant_serializer = VariantSerializer(variant)
+            variant_data = variant_serializer.data
+
+            # Получаем все задачи, связанные с этим вариантом
+            tasks = variant.tasks.all()
+
+            # Сериализуем задачи
+            task_serializer = TaskSerializer(tasks, many=True)
+
+            # Добавляем полную информацию о задачах в данные варианта
+            variant_data['tasks'] = task_serializer.data
+
+            # Добавляем вариант в список
+            variants_data.append(variant_data)
+
+        # Возвращаем данные в ответе
+        return Response(variants_data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        # В случае ошибки возвращаем сообщение об ошибке
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def get_variant_by_id(request, variant_id):
+    try:
+        # Получаем объект Variant по ID
+        variant = get_object_or_404(Variant, id=variant_id)
+
+        # Сериализуем вариант
+        variant_serializer = VariantSerializer(variant)
+        variant_data = variant_serializer.data
+
+        # Получаем все задачи, связанные с этим вариантом
+        tasks = variant.tasks.all()
+
+        # Сериализуем задачи
+        task_serializer = TaskSerializer(tasks, many=True)
+
+        # Добавляем полную информацию о задачах в данные варианта
+        variant_data['tasks'] = task_serializer.data
+
+        # Возвращаем данные в ответе
+        return Response(variant_data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        # В случае ошибки возвращаем сообщение об ошибке
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Только для аутентифицированных пользователей
+def get_assigned_variant_ids(request):
+    """
+    Возвращает все ID вариантов, которые заданы ученику.
+    Учеником является пользователь, отправивший запрос.
+    """
+    try:
+        # Проверяем, что пользователь является учеником
+        if request.user.role != 'ученик':
+            return Response({"error": "Доступ разрешен только для учеников"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Получаем профиль ученика
+        student = Student.objects.get(account=request.user)
+
+        # Получаем все объекты TeachersVariantStudent, связанные с этим учеником
+        assigned_variants = TeachersVariantStudent.objects.filter(fk_student_id=student)
+
+        # Извлекаем ID вариантов
+        variant_ids = [variant.fk_variant_id.id for variant in assigned_variants]
+
+        # Возвращаем список ID вариантов
+        return Response({"variant_ids": variant_ids}, status=status.HTTP_200_OK)
+
+    except Student.DoesNotExist:
+        # Если профиль ученика не найден
+        return Response({"error": "Профиль ученика не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        # В случае ошибки возвращаем сообщение об ошибке
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -35,7 +35,7 @@ class TariffAdmin(admin.ModelAdmin):
 
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'fk_code_of_type', 'creator_id', 'visibility', 'fk_exam_id', 'description']
+    list_display = ['id', 'fk_code_of_type', 'creator_id', 'visibility', 'fk_exam_id', 'description', 'image_path', 'file_path']
     list_display_links = ['id']
     search_fields = ['id', 'fk_code_of_type__code_of_type', 'creator_id__account__username', 'visibility', 'fk_exam_id__exam_name', 'description']
     list_filter = ['visibility', 'fk_exam_id']
@@ -49,7 +49,7 @@ class ExamAdmin(admin.ModelAdmin):
 
 
 class TypeOfTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'points', 'fk_exam_id']
+    list_display = ['id', 'number_of_task', 'points', 'fk_exam_id']
     list_display_links = ['id']
     search_fields = ['points', 'fk_exam_id__exam_name']
     list_filter = ['fk_exam_id']

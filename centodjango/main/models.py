@@ -20,11 +20,13 @@ class TeachersVariantStudent(models.Model):
     def __str__(self):
         return f"Учитель: {self.fk_teacher_id}, Ученик: {self.fk_student_id}, Вариант: {self.fk_variant_id}"
 
+
 class Exam(models.Model):
     exam_name = models.CharField('Название экзамена', max_length=128)
 
     def __str__(self):
         return self.exam_name
+
 
 class TypeOfTask(models.Model):
     number_of_task = models.IntegerField('Номер задание')
@@ -34,19 +36,20 @@ class TypeOfTask(models.Model):
     def __str__(self):
         return str(self.id)
 
+
 class Task(models.Model):
     fk_code_of_type = models.ForeignKey('TypeOfTask', on_delete=models.PROTECT, related_name='code_of_number')
-    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT,
-                                   related_name='task_creator', default='112211', null=True)
+    creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='task_creator', null=True, blank=True)
     visibility = models.BooleanField('Доступность')
     fk_exam_id = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='exam_task')
     description = models.TextField('Описание задания')
-    image_path = models.CharField('Путь до изображения', max_length=128,  null=True)
+    image_path = models.CharField('Путь до изображения', max_length=128, blank=True, null=True)
     correct_answer = models.CharField('Правильный ответ', max_length=128)
-    file_path = models.CharField('Путь до файла', max_length=128, default='113311', null=True)
+    file_path = models.CharField('Путь до файла', max_length=128, blank=True, null=True)
 
     def __str__(self):
         return str(self.id)
+
 
 class Variant(models.Model):
     creator_id = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='variant_creator', null=True)
@@ -57,6 +60,7 @@ class Variant(models.Model):
 
     def __str__(self):
         return str(self.id)
+
 
 class Tariff(models.Model):
     tariff_name = models.CharField('Название тарифа', max_length=128)

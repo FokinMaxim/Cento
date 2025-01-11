@@ -32,7 +32,7 @@ urlpatterns = [
     path('api/get-student/<int:student_id>/', getStudent, name='get-student'),
     # Добавление ученика учителю
     path('api/add-student/', AddStudentToTeacherView.as_view(), name='add-student'),
-    #Добавление задания и варианта
+    #Добавление задания
     path('api/create-task/', create_task, name='create-task'),
     path('api/create-variant/', create_variant, name='create-variant'),
 
@@ -41,4 +41,12 @@ urlpatterns = [
 
     # Информация о профиле
     path('api/profile/', ProfileView.as_view(), name='profile'),
+
+    path('api/create-homework/', CreateHomeworkView.as_view(), name='create-homework'),
+
+    #получение вариантов
+    path('api/variants/', get_all_variants, name='get-all-variants'), # всех
+    path('api/variants/<int:variant_id>/', get_variant_by_id, name='get-variant-by-id'), # по id
+
+    path('api/get-homework/', get_assigned_variant_ids, name='get-assigned-variant-ids'),
 ]
