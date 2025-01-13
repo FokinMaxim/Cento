@@ -48,5 +48,7 @@ urlpatterns = [
     path('api/variants/', get_all_variants, name='get-all-variants'), # всех
     path('api/variants/<int:variant_id>/', get_variant_by_id, name='get-variant-by-id'), # по id
 
-    path('api/get-homework/', get_assigned_variant_ids, name='get-assigned-variant-ids'),
+    path('api/get-homework/', get_assigned_variants, name='get-assigned-variant'),
+
+    path('api/check-variant/', CheckVariantView.as_view(), name='check-variant'),
 ]

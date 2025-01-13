@@ -323,13 +323,15 @@ def create_variant(request):
     # Получаем все задачи по переданным ID
     tasks = Task.objects.filter(id__in=task_ids)
 
-    # Проверяем, что все задачи принадлежат одному экзамену и этот экзамен соответствует экзамену варианта
-    # for task in tasks:
-    #    if task.fk_exam_id != exam:
-    #        return Response(
-    #            {"error": f"Task {task.id} does not belong to the specified exam"},
-    #            status=status.HTTP_400_BAD_REQUEST
-    #        )
+    for task in tasks:
+        if task.creator_id and task.creator_id != teacher:
+            return Response(
+                {
+                    "error": f"Task {task.id} was created by another teacher. "
+                             "You can only use your own tasks or public tasks."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
 
     # Создаем вариант
     variant = Variant.objects.create(
@@ -358,23 +360,45 @@ class CreateHomeworkView(APIView):
 
         # Проверяем, что все необходимые данные переданы
         if not variant_id or not student_email or not dead_line:
-            return Response({"error": "Variant ID, student email, and deadline are required"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Variant ID, student email, and deadline are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Получаем объект варианта
         variant = get_object_or_404(Variant, id=variant_id)
+
+        # Получаем объект учителя, который отправил запрос
+        teacher = get_object_or_404(Teacher, account=request.user)
+
+        # Проверяем, что вариант либо создан текущим учителем, либо является общим (creator == null)
+        if variant.creator_id and variant.creator_id != teacher:
+            return Response(
+                {"error": "You can only assign your own variants or public variants"},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         # Получаем объект ученика по почте
         try:
             student_account = Account.objects.get(email=student_email, role='ученик')
             student = Student.objects.get(account=student_account)
         except Account.DoesNotExist:
-            return Response({"error": "Student with this email does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Student with this email does not exist"},
+                status=status.HTTP_404_NOT_FOUND
+            )
         except Student.DoesNotExist:
-            return Response({"error": "Student profile does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Student profile does not exist"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-        # Получаем объект учителя, который отправил запрос
-        teacher = get_object_or_404(Teacher, account=request.user)
+        # Проверяем, что ученик привязан к учителю
+        if student not in teacher.students.all():
+            return Response(
+                {"error": "This student is not assigned to you"},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         # Создаем объект TeachersVariantStudent
         teachers_variant_student = TeachersVariantStudent.objects.create(
@@ -452,10 +476,10 @@ def get_variant_by_id(request, variant_id):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])  # Только для аутентифицированных пользователей
-def get_assigned_variant_ids(request):
+@permission_classes([IsAuthenticated])
+def get_assigned_variants(request):
     """
-    Возвращает все ID вариантов, которые заданы ученику.
+    Возвращает список объектов из модели TeachersVariantStudent, связанных с учеником.
     Учеником является пользователь, отправивший запрос.
     """
     try:
@@ -469,11 +493,11 @@ def get_assigned_variant_ids(request):
         # Получаем все объекты TeachersVariantStudent, связанные с этим учеником
         assigned_variants = TeachersVariantStudent.objects.filter(fk_student_id=student)
 
-        # Извлекаем ID вариантов
-        variant_ids = [variant.fk_variant_id.id for variant in assigned_variants]
+        # Сериализуем данные
+        serializer = TeachersVariantStudentSerializer(assigned_variants, many=True)
 
-        # Возвращаем список ID вариантов
-        return Response({"variant_ids": variant_ids}, status=status.HTTP_200_OK)
+        # Возвращаем сериализованные данные
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Student.DoesNotExist:
         # Если профиль ученика не найден
@@ -482,3 +506,67 @@ def get_assigned_variant_ids(request):
     except Exception as e:
         # В случае ошибки возвращаем сообщение об ошибке
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CheckVariantView(APIView):
+    permission_classes = [IsAuthenticated]  # Только для аутентифицированных пользователей
+
+    def post(self, request):
+        # Проверяем, что запрос отправляет ученик
+        if request.user.role != 'ученик':
+            return Response(
+                {"error": "Only students can submit answers"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Получаем данные из запроса
+        variant_id = request.data.get('variant_id')
+        student_answers = request.data.get('answers')  # Словарь с ответами ученика
+
+        # Проверяем, что все необходимые данные переданы
+        if not variant_id or not student_answers:
+            return Response(
+                {"error": "Variant ID and answers are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Получаем объект варианта
+        variant = get_object_or_404(Variant, id=variant_id)
+
+        # Получаем все задачи, связанные с этим вариантом
+        tasks = variant.tasks.all()
+
+        # Инициализируем переменные для подсчёта баллов
+        total_points = 0
+
+        # Проверяем ответы ученика
+        for task in tasks:
+            if str(task.id) in student_answers:  # Проверяем, есть ли ответ на это задание
+                student_answer = student_answers[str(task.id)]
+                if student_answer == task.correct_answer:  # Сравниваем ответ ученика с правильным
+                    total_points += task.fk_code_of_type.points  # Добавляем баллы за задание
+
+        # Получаем объект TeachersVariantStudent для обновления
+        try:
+            teachers_variant_student = TeachersVariantStudent.objects.get(
+                fk_variant_id=variant,
+                fk_student_id__account=request.user  # Ученик, который отправил запрос
+            )
+        except TeachersVariantStudent.DoesNotExist:
+            return Response(
+                {"error": "This variant is not assigned to you"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Обновляем earned_points и статус
+        teachers_variant_student.earned_points = total_points
+        teachers_variant_student.status = 'решено'  # Меняем статус на "проверено"
+        teachers_variant_student.save()
+
+        # Возвращаем результат
+        return Response(
+            {
+                "message": "Variant checked successfully"
+            },
+            status=status.HTTP_200_OK
+        )
