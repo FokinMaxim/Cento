@@ -3,21 +3,21 @@ from .models import *
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'role', 'phone_number')
+    list_display = ('id', 'username', 'email', 'role', 'phone_number')
     list_filter = ('role',)
-    search_fields = ('username', 'email')
+    search_fields = ('id', 'username', 'email')
 
 
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ['account', 'studying_year']
+    list_display = ['id', 'account', 'studying_year']
     list_filter = ('studying_year',)
-    search_fields = ('account__username', 'account__email')
+    search_fields = ('id', 'account__username', 'account__email')
 
 
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ['account', 'tariff_end_date', 'fk_tariff_id']
+    list_display = ['id', 'account', 'tariff_end_date', 'fk_tariff_id']
     list_filter = ('tariff_end_date',)
-    search_fields = ('account__username', 'account__email')
+    search_fields = ('id', 'account__username', 'account__email')
 
 
 class VariantAdmin(admin.ModelAdmin):
@@ -60,6 +60,12 @@ class TeachersVariantStudentAdmin(admin.ModelAdmin):
     search_fields = ['fk_teacher_id__account__username', 'fk_student_id__account__username', 'fk_variant_id__id', 'dead_line']
     list_filter = ['fk_teacher_id', 'fk_student_id', 'fk_variant_id', 'dead_line', 'status']
 
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ['id', 'teacher', 'student', 'datetime']
+    list_display_links = ['id']
+    search_fields = ['teacher', 'student', 'datetime']
+    list_filter = ['datetime']
+
 
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Teacher, TeacherAdmin)
@@ -69,3 +75,4 @@ admin.site.register(Task, TaskAdmin)
 admin.site.register(Exam, ExamAdmin)
 admin.site.register(TypeOfTask, TypeOfTaskAdmin)
 admin.site.register(TeachersVariantStudent, TeachersVariantStudentAdmin)
+admin.site.register(Lesson, LessonAdmin)

@@ -51,4 +51,8 @@ urlpatterns = [
     path('api/get-homework/', get_assigned_variants, name='get-assigned-variant'),
 
     path('api/check-variant/', CheckVariantView.as_view(), name='check-variant'),
+    path('api/lessons/', LessonListCreateView.as_view(), name='lesson-list-create'),
+    path('api/lessons/<int:pk>/', LessonDeleteView.as_view(), name='lesson-delete'),
+     path('api/get-upcoming-lessons/', GetUpcomingLessonsView.as_view(), name='get-upcoming-lessons'),
+
 ]

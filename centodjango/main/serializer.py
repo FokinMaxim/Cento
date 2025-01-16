@@ -83,3 +83,59 @@ class RoleBasedRegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['password'] = make_password(validated_data['password'])
         return super().create(validated_data)
+
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    student_email = serializers.EmailField(write_only=True)  # Поле для email ученика
+
+    class Meta:
+        model = Lesson
+        fields = ['id', 'teacher', 'student', 'datetime', 'student_email']
+        read_only_fields = ['id', 'teacher', 'student']  # Эти поля заполняются автоматически
+
+    def validate_student_email(self, value):
+        """
+        Проверяем, что ученик с указанным email существует и является учеником.
+        """
+        try:
+            student_account = Account.objects.get(email=value, role='ученик')
+            student = Student.objects.get(account=student_account)
+            return student
+        except Account.DoesNotExist:
+            raise serializers.ValidationError("Ученик с указанным email не найден.")
+        except Student.DoesNotExist:
+            raise serializers.ValidationError("Ученик с указанным email не найден.")
+
+    def validate(self, data):
+        """
+        Проверяем, что ученик принадлежит учителю, который создает урок.
+        """
+        user = self.context['request'].user
+        if user.role != 'учитель':
+            raise serializers.ValidationError("Только учитель может создавать уроки.")
+
+        teacher = user.teacher
+        student = data['student_email']  # student_email уже проверен в validate_student_email
+
+        if not teacher.students.filter(id=student.id).exists():
+            raise serializers.ValidationError("Ученик не найден в списке ваших учеников.")
+
+        # Убираем student_email из данных, так как он больше не нужен
+        data.pop('student_email')
+        data['student'] = student  # Добавляем объект студента в данные
+
+        return data
+
+    def create(self, validated_data):
+        """
+        Создаем урок, автоматически устанавливая учителя и ученика.
+        """
+        user = self.context['request'].user
+        teacher = user.teacher
+
+        lesson = Lesson.objects.create(
+            teacher=teacher,
+            **validated_data
+        )
+        return lesson

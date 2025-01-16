@@ -53,6 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -85,15 +87,15 @@ WSGI_APPLICATION = 'centodjango.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'USER': 'postgres', # correct for local
-        'NAME': 'Cento_database',
+        'NAME': 'cento_db',
+        'USER': 'maxim', #correct for server
         'PASSWORD': 'vfrtynjc2005',
         'HOST': 'localhost',
         'PORT': '5432',
     }
 
-#'NAME': 'cento_db',
-#'USER': 'maxim', #correct for server
+#
+#
 
 
 }
@@ -123,7 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'GMT'
 
 USE_I18N = True
 

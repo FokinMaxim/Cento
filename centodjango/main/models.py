@@ -1,9 +1,11 @@
 from datetime import datetime
+from datetime import timedelta, timezone
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import DateTimeField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from datetime import date
 
 
 class TeachersVariantStudent(models.Model):
@@ -117,3 +119,12 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.account.username
+
+
+class Lesson(models.Model):
+    teacher = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='lessons_taught')
+    student = models.ForeignKey('Student', on_delete=models.PROTECT, related_name='lessons_attended')
+    datetime = models.DateTimeField('Дата и время занятия', default=datetime.now)
+
+    def __str__(self):
+        return f"Урок с учителем {self.teacher.account.username} для ученика {self.student.account.username} на {self.datetime}"
