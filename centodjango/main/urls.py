@@ -1,8 +1,19 @@
 from rest_framework import  routers
 from rest_framework_simplejwt.views import TokenRefreshView
-
-from .views import *
+from .view.add_student_to_teacher_view import *
+from .view.auth_views import *
+from .view.check_homework import CheckVariantView
+from .view.create_homework_view import CreateHomeworkView
+from .view.get_assign_variants import get_assigned_variants
+from .view.get_student import getStudent
+from .view.get_upcomming_lessons_view import GetUpcomingLessonsView
+from .view.lesson_views import *
+from .view.profile_view import ProfileView
+from .view.register_views import *
+from .view.task_views import *
+from .view.variant_views import *
 from django.urls import path, include
+from .view.view_sets import *
 
 router = routers.DefaultRouter()
 router.register('api/student', StudentViewSet, 'student')
