@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from .models import *
 
@@ -128,9 +129,6 @@ class LessonSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        """
-        Создаем урок, автоматически устанавливая учителя и ученика.
-        """
         user = self.context['request'].user
         teacher = user.teacher
 
@@ -139,3 +137,92 @@ class LessonSerializer(serializers.ModelSerializer):
             **validated_data
         )
         return lesson
+
+
+
+class ScheduleElementSerializer(serializers.ModelSerializer):
+    teacher_info = serializers.SerializerMethodField()
+    student_info = serializers.SerializerMethodField()
+    exam_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ScheduleElement
+        fields = '__all__'
+
+    def get_teacher_info(self, obj):
+        return {
+            'id': obj.teacher.id,
+            'name': obj.teacher.account.username
+        }
+
+    def get_student_info(self, obj):
+        return {
+            'id': obj.student.id,
+            'name': obj.student.account.username
+        }
+
+    def get_exam_info(self, obj):
+        if obj.exam:
+            return {
+                'id': obj.exam.id,
+                'name': obj.exam.exam_name
+            }
+        return None
+
+
+class RecurringScheduleElementSerializer(serializers.ModelSerializer):
+    teacher_info = serializers.SerializerMethodField()
+    student_info = serializers.SerializerMethodField()
+    exam_info = serializers.SerializerMethodField()
+    next_occurrences = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RecurringScheduleElement
+        fields = '__all__'
+
+    def get_teacher_info(self, obj):
+        return {
+            'id': obj.teacher.id,
+            'name': obj.teacher.account.username
+        }
+
+    def get_student_info(self, obj):
+        return {
+            'id': obj.student.id,
+            'name': obj.student.account.username
+        }
+
+    def get_exam_info(self, obj):
+        if obj.exam:
+            return {
+                'id': obj.exam.id,
+                'name': obj.exam.exam_name
+            }
+        return None
+
+    def get_next_occurrences(self, obj):
+        return ScheduleElement.objects.filter(
+            recurring_template=obj,
+            datetime__gte=datetime.now()
+        ).values('id', 'datetime')[:5]  # Ближайшие 5 занятий
+
+
+class ScheduleElementCreateSerializer(serializers.ModelSerializer):
+    student_id = serializers.IntegerField(write_only=True)
+    exam_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    is_repetitive = serializers.BooleanField(write_only=True, default=False)
+
+    class Meta:
+        model = ScheduleElement
+        fields = [ 'student_id', 'exam_id', 'lesson_name', 'datetime', 'duration', 'teacher_comment', 'is_repetitive', 'color']
+        extra_kwargs = {
+            'teacher_comment': {'required': False},
+            'color': {'required': False, 'default': '#3b82f6'}
+        }
+
+    def validate(self, data):
+        if data['datetime'].replace(tzinfo=None) < datetime.now():
+            raise serializers.ValidationError("Нельзя создавать занятия в прошлом")
+
+        return data
+

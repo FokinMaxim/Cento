@@ -5,11 +5,15 @@ from .view.auth_views import *
 from .view.check_homework import CheckVariantView
 from .view.create_homework_view import CreateHomeworkView
 from .view.get_assign_variants import get_assigned_variants
+from .view.get_shedue_element_by_id import ScheduleElementDetailView, RecurringScheduleElementDetailView
+from .view.get_shedue_elements_by_period import TeacherSchedulePeriodView, StudentSchedulePeriodView
 from .view.get_student import getStudent
+from .view.get_student_list_from_teacher import TeacherStudentsListView
 from .view.get_upcomming_lessons_view import GetUpcomingLessonsView
 from .view.lesson_views import *
 from .view.profile_view import ProfileView
 from .view.register_views import *
+from .view.shedue_element_creation import ScheduleElementCreateView
 from .view.task_views import *
 from .view.variant_views import *
 from django.urls import path, include
@@ -64,6 +68,15 @@ urlpatterns = [
     path('api/check-variant/', CheckVariantView.as_view(), name='check-variant'),
     path('api/lessons/', LessonListCreateView.as_view(), name='lesson-list-create'),
     path('api/lessons/<int:pk>/', LessonDeleteView.as_view(), name='lesson-delete'),
-     path('api/get-upcoming-lessons/', GetUpcomingLessonsView.as_view(), name='get-upcoming-lessons'),
+    path('api/get-upcoming-lessons/', GetUpcomingLessonsView.as_view(), name='get-upcoming-lessons'),
+
+    path('api/teacher/students/', TeacherStudentsListView.as_view(), name='teacher-students'), #описать в доке
+
+    path('api/schedule-elements/', ScheduleElementCreateView.as_view(), name='schedule-element-create'),
+    path('api/schedule-elements/<int:pk>/', ScheduleElementDetailView.as_view(), name='schedule-element-detail'),
+    path('api/recurring-schedules/<int:pk>/', RecurringScheduleElementDetailView.as_view(), name='recurring-schedule-detail'),
+
+    path('api/teacher-period-schedule/', TeacherSchedulePeriodView.as_view(), name='teacher-schedule-period'),
+    path('api/student-period-schedule/', StudentSchedulePeriodView.as_view(), name='student-schedule-period'),
 
 ]

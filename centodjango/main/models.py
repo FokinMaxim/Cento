@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import DateTimeField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import date
 
 
@@ -128,3 +129,78 @@ class Lesson(models.Model):
 
     def __str__(self):
         return f"Урок с учителем {self.teacher.account.username} для ученика {self.student.account.username} на {self.datetime}"
+
+
+class RecurringScheduleElement(models.Model):
+    DAYS_OF_WEEK = [
+        (0, 'Понедельник'),
+        (1, 'Вторник'),
+        (2, 'Среда'),
+        (3, 'Четверг'),
+        (4, 'Пятница'),
+        (5, 'Суббота'),
+        (6, 'Воскресенье'),
+    ]
+
+    exam = models.ForeignKey( 'Exam', on_delete=models.PROTECT, null=True, blank=True, related_name='recurring_schedule_elements')
+    lesson_name = models.CharField('Название урока', max_length=128)
+    day_of_week = models.IntegerField( 'День недели', choices=DAYS_OF_WEEK, validators=[MinValueValidator(0), MaxValueValidator(6)])
+    time = models.TimeField('Время начала урока')
+    student = models.ForeignKey( 'Student', on_delete=models.PROTECT, related_name='recurring_schedule_elements')
+    teacher = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='recurring_schedule_elements')
+    color = models.CharField( 'Цвет', max_length=7, default='#3b82f6')
+    duration = models.PositiveIntegerField('Длительность занятия (минуты)', default=60,)
+
+    class Meta:
+        verbose_name = 'Шаблон повторяющегося занятия'
+        verbose_name_plural = 'Шаблоны повторяющихся занятий'
+        unique_together = ['day_of_week', 'time', 'student', 'teacher']
+        ordering = ['day_of_week', 'time']
+
+    def __str__(self):
+        return f"{self.lesson_name} ({self.time})"
+
+
+
+class ScheduleElement(models.Model):
+    # Основные поля
+    exam = models.ForeignKey('Exam', on_delete=models.PROTECT, related_name='lessons', null=True, blank=True)
+    lesson_name = models.CharField('Название урока', max_length=128)
+    datetime = models.DateTimeField('Дата и время урока')
+    is_repetitive = models.BooleanField('Повторяющееся занятие', default=False)
+
+    # Связи с пользователями
+    student = models.ForeignKey('Student', on_delete=models.PROTECT, related_name='scheduled_lessons_attended')
+    teacher = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='scheduled_lessons_taught')
+
+    # Дополнительные поля
+    color = models.CharField('Цвет', max_length=7, default='#bafd71')
+    teacher_comment = models.TextField('Комментарий учителя', blank=True, null=True)
+    student_comment = models.TextField('Комментарий ученика', blank=True, null=True)
+    duration = models.PositiveIntegerField('Длительность занятия (минуты)', default=60, )
+
+    # Статус урока
+    STATUS_CHOICES = [
+        ('not_held', 'Не проведено'),
+        ('held', 'Проведено'),
+        ('canceled_teacher', 'Отменено учителем'),
+        ('canceled_student', 'Отменено учеником'),
+    ]
+    status = models.CharField('Статус урока', max_length=20, choices=STATUS_CHOICES, default='not_held')
+    recurring_template = models.ForeignKey(
+        RecurringScheduleElement,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='generated_elements',
+        verbose_name='Шаблон повторяющегося занятия')
+
+    def __str__(self):
+        return f"{self.lesson_name} ({self.datetime})"
+
+    class Meta:
+        verbose_name = 'Занятие'
+        verbose_name_plural = 'Занятия'
+
+
+

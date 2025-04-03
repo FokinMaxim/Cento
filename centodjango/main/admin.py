@@ -60,11 +60,25 @@ class TeachersVariantStudentAdmin(admin.ModelAdmin):
     search_fields = ['fk_teacher_id__account__username', 'fk_student_id__account__username', 'fk_variant_id__id', 'dead_line']
     list_filter = ['fk_teacher_id', 'fk_student_id', 'fk_variant_id', 'dead_line', 'status']
 
+
 class LessonAdmin(admin.ModelAdmin):
     list_display = ['id', 'teacher', 'student', 'datetime']
     list_display_links = ['id']
     search_fields = ['teacher', 'student', 'datetime']
     list_filter = ['datetime']
+
+
+class ScheduleElementAdmin(admin.ModelAdmin):
+    list_display = ('id', 'lesson_name', 'teacher', 'student', 'datetime', 'status', 'is_repetitive', 'exam')
+    list_display_links = ('id', 'lesson_name')
+    list_filter = ( 'status', 'datetime', 'exam', 'teacher', 'student')
+    search_fields = ( 'lesson_name', 'teacher__account__username', 'student__account__username', 'exam__exam_name', 'teacher_comment', 'student_comment')
+
+
+
+class RecurringScheduleElementAdmin(admin.ModelAdmin):
+    list_display = ('id', 'exam', 'lesson_name', 'teacher', 'student', 'day_of_week', 'time')
+    list_filter = ('day_of_week', 'exam', 'teacher')
 
 
 admin.site.register(Student, StudentAdmin)
@@ -76,3 +90,5 @@ admin.site.register(Exam, ExamAdmin)
 admin.site.register(TypeOfTask, TypeOfTaskAdmin)
 admin.site.register(TeachersVariantStudent, TeachersVariantStudentAdmin)
 admin.site.register(Lesson, LessonAdmin)
+admin.site.register(ScheduleElement, ScheduleElementAdmin)
+admin.site.register(RecurringScheduleElement, RecurringScheduleElementAdmin)
