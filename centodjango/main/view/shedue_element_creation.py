@@ -112,16 +112,16 @@ class ScheduleElementCreateView(generics.CreateAPIView):
     def create_recurring_schedule(self, teacher, student, exam, data):
         """Создает шаблон повторяющегося занятия и первые 3 занятия"""
         # Создаем шаблон
-        recurring_element = RecurringScheduleElement.objects.create(
-            teacher=teacher,
-            student=student,
-            exam=exam,
-            lesson_name=data['lesson_name'],
-            day_of_week=data['datetime'].weekday(),
-            time=data['datetime'].time(),
-            duration=data['duration'],
-            color=data.get('color', '#3b82f6')
-        )
+        #recurring_element = RecurringScheduleElement.objects.create(
+        #    teacher=teacher,
+        #    student=student,
+        #    exam=exam,
+        #    lesson_name=data['lesson_name'],
+        #    day_of_week=data['datetime'].weekday(),
+        #    time=data['datetime'].time(),
+        #    duration=data['duration'],
+        #    color=data.get('color', '#3b82f6')
+        #)
 
         # Создаем первые 3 занятия
         created_lessons = []
@@ -138,8 +138,12 @@ class ScheduleElementCreateView(generics.CreateAPIView):
                 teacher_comment=data.get('teacher_comment'),
                 color=data.get('color', '#3b82f6'),
                 is_repetitive=True,
-                recurring_template=recurring_element
+                #recurring_template=recurring_element
             )
+            if 'lesson_cost' in data:
+                lesson.lesson_cost = data['lesson_cost']
+                lesson.save()
+
             created_lessons.append(lesson)
 
         return created_lessons[0]  # Возвращаем первое занятие для ответа

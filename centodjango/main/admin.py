@@ -69,10 +69,12 @@ class LessonAdmin(admin.ModelAdmin):
 
 
 class ScheduleElementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'lesson_name', 'teacher', 'student', 'datetime', 'status', 'is_repetitive', 'exam')
+    list_display = ('id', 'lesson_name', 'teacher', 'student', 'datetime', 'status',
+                    'is_repetitive', 'exam', 'payment_status', 'lesson_cost')
     list_display_links = ('id', 'lesson_name')
-    list_filter = ( 'status', 'datetime', 'exam', 'teacher', 'student')
-    search_fields = ( 'lesson_name', 'teacher__account__username', 'student__account__username', 'exam__exam_name', 'teacher_comment', 'student_comment')
+    list_filter = ('status', 'datetime', 'exam', 'teacher', 'student', 'payment_status')
+    search_fields = ('lesson_name', 'teacher__account__username', 'student__account__username',
+                     'exam__exam_name', 'teacher_comment', 'student_comment', 'payment_status', 'lesson_cost')
 
 
 

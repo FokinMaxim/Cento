@@ -14,7 +14,6 @@ class TeacherSchedulePeriodView(generics.ListAPIView):
     def get_queryset(self):
         start_date = self.request.data.get('start_date')
         end_date = self.request.data.get('end_date')
-        print(start_date, end_date)
 
         # Преобразуем строки в datetime
         try:

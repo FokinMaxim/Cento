@@ -5,6 +5,7 @@ from .view.auth_views import *
 from .view.check_homework import CheckVariantView
 from .view.create_homework_view import CreateHomeworkView
 from .view.get_assign_variants import get_assigned_variants
+from .view.get_finance_info import LessonsPaidStatusView, TeacherFinancialStatsView
 from .view.get_shedue_element_by_id import ScheduleElementDetailView, RecurringScheduleElementDetailView
 from .view.get_shedue_elements_by_period import TeacherSchedulePeriodView, StudentSchedulePeriodView
 from .view.get_student import getStudent
@@ -60,8 +61,8 @@ urlpatterns = [
     path('api/create-homework/', CreateHomeworkView.as_view(), name='create-homework'),
 
     #получение вариантов
-    path('api/variants/', get_all_variants, name='get-all-variants'), # всех
-    path('api/variants/<int:variant_id>/', get_variant_by_id, name='get-variant-by-id'), # по id
+    path('api/variants/', get_all_variants, name='get-all-variants'),
+    path('api/variants/<int:variant_id>/', get_variant_by_id, name='get-variant-by-id'),
 
     path('api/get-homework/', get_assigned_variants, name='get-assigned-variant'),
 
@@ -70,7 +71,7 @@ urlpatterns = [
     path('api/lessons/<int:pk>/', LessonDeleteView.as_view(), name='lesson-delete'),
     path('api/get-upcoming-lessons/', GetUpcomingLessonsView.as_view(), name='get-upcoming-lessons'),
 
-    path('api/teacher/students/', TeacherStudentsListView.as_view(), name='teacher-students'), #описать в доке
+    path('api/students-of-teacher/', TeacherStudentsListView.as_view(), name='teacher-students'),
 
     path('api/schedule-elements/', ScheduleElementCreateView.as_view(), name='schedule-element-create'),
     path('api/schedule-elements/<int:pk>/', ScheduleElementDetailView.as_view(), name='schedule-element-detail'),
@@ -78,5 +79,8 @@ urlpatterns = [
 
     path('api/teacher-period-schedule/', TeacherSchedulePeriodView.as_view(), name='teacher-schedule-period'),
     path('api/student-period-schedule/', StudentSchedulePeriodView.as_view(), name='student-schedule-period'),
+
+    path('lessons/payment/', LessonsPaidStatusView.as_view(), name='teacher-payment-lessons'),
+    path('finance/stats/', TeacherFinancialStatsView.as_view(), name='teacher-financial-stats'),
 
 ]

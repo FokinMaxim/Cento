@@ -214,15 +214,15 @@ class ScheduleElementCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ScheduleElement
-        fields = [ 'student_id', 'exam_id', 'lesson_name', 'datetime', 'duration', 'teacher_comment', 'is_repetitive', 'color']
+        fields = ['student_id', 'exam_id', 'lesson_name', 'datetime', 'duration', 'teacher_comment', 'is_repetitive', 'color', 'payment_status', 'lesson_cost']
         extra_kwargs = {
             'teacher_comment': {'required': False},
-            'color': {'required': False, 'default': '#3b82f6'}
+            'color': {'required': False, 'default': '#3b82f6'},
+            'payment_status': {'required': False, 'default': 'not_paid'},
+            'lesson_cost': {'required': False, 'default': 0}
         }
 
     def validate(self, data):
         if data['datetime'].replace(tzinfo=None) < datetime.now():
             raise serializers.ValidationError("Нельзя создавать занятия в прошлом")
-
         return data
-

@@ -169,11 +169,9 @@ class ScheduleElement(models.Model):
     datetime = models.DateTimeField('Дата и время урока')
     is_repetitive = models.BooleanField('Повторяющееся занятие', default=False)
 
-    # Связи с пользователями
     student = models.ForeignKey('Student', on_delete=models.PROTECT, related_name='scheduled_lessons_attended')
     teacher = models.ForeignKey('Teacher', on_delete=models.PROTECT, related_name='scheduled_lessons_taught')
 
-    # Дополнительные поля
     color = models.CharField('Цвет', max_length=7, default='#bafd71')
     teacher_comment = models.TextField('Комментарий учителя', blank=True, null=True)
     student_comment = models.TextField('Комментарий ученика', blank=True, null=True)
@@ -195,12 +193,16 @@ class ScheduleElement(models.Model):
         related_name='generated_elements',
         verbose_name='Шаблон повторяющегося занятия')
 
+
+    PAYMENT_STATUS_CHOICES = [('paid', 'оплачено'), ('not_paid', 'не оплачено')]
+    payment_status = models.CharField('Статус оплаты', max_length=20, choices=PAYMENT_STATUS_CHOICES,
+                                      default='not_paid')
+    lesson_cost = models.DecimalField('Стоимость задания', max_digits=10, decimal_places=2, default=0)
+
     def __str__(self):
         return f"{self.lesson_name} ({self.datetime})"
 
     class Meta:
         verbose_name = 'Занятие'
         verbose_name_plural = 'Занятия'
-
-
 

@@ -44,7 +44,7 @@ class ProfileView(APIView):
                 # Получаем список учеников, связанных с этим учителем
                 students = teacher.students.all()
                 students_data = [{
-                    "student_id": student.account.id,
+                    "student_id": student.id,
                     "student_name": student.account.username,
                     "student_email": student.account.email
                 } for student in students]
