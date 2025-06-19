@@ -60,8 +60,8 @@ class ScheduleElementCreateView(generics.CreateAPIView):
         if exam_id:
             try:
                 exam = Exam.objects.get(id=exam_id)
-                if not student.exams.filter(id=exam.id).exists():
-                    raise ValidationError(f"Ученик не готовится к указанному экзамену")
+                #if not student.exams.filter(id=exam.id).exists():
+                #    raise ValidationError(f"Ученик не готовится к указанному экзамену")
                 return exam
             except Exam.DoesNotExist:
                 raise ValidationError("Экзамен не найден")

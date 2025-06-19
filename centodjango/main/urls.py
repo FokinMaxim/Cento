@@ -6,6 +6,7 @@ from .view.check_homework import CheckVariantView
 from .view.create_homework_view import CreateHomeworkView
 from .view.get_assign_variants import get_assigned_variants
 from .view.get_finance_info import LessonsPaidStatusView, TeacherFinancialStatsView
+from .view.get_full_finance_stats import TeacherCombinedFinancialStatsView
 from .view.get_shedue_element_by_id import ScheduleElementDetailView, RecurringScheduleElementDetailView
 from .view.get_shedue_elements_by_period import TeacherSchedulePeriodView, StudentSchedulePeriodView
 from .view.get_student import getStudent
@@ -80,7 +81,7 @@ urlpatterns = [
     path('api/teacher-period-schedule/', TeacherSchedulePeriodView.as_view(), name='teacher-schedule-period'),
     path('api/student-period-schedule/', StudentSchedulePeriodView.as_view(), name='student-schedule-period'),
 
-    path('lessons/payment/', LessonsPaidStatusView.as_view(), name='teacher-payment-lessons'),
-    path('finance/stats/', TeacherFinancialStatsView.as_view(), name='teacher-financial-stats'),
-
+    path('api/lessons/payment/', LessonsPaidStatusView.as_view(), name='teacher-payment-lessons'),
+    path('api/finance/stats/', TeacherFinancialStatsView.as_view(), name='teacher-financial-stats'),
+    path('api/finance/full-stats/', TeacherCombinedFinancialStatsView.as_view(), name='full-financial-stats'),
 ]

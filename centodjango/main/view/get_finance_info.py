@@ -20,16 +20,29 @@ class LessonsPaidStatusView(APIView):
             payment_status = request.data.get('payment_status')
             if payment_status not in ['paid', 'not_paid']:
                 raise ValidationError("Недопустимый статус оплаты. Используйте 'paid' или 'not_paid'")
-        except KeyError:
-            raise ValidationError("Не указан обязательный параметр 'payment_status'")
+
+            # Добавляем параметры периода
+            start_date_str = request.data['start_date']
+            end_date_str = request.data['end_date']
+
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+
+        except KeyError as e:
+            if str(e) == "'payment_status'":
+                raise ValidationError("Не указан обязательный параметр 'payment_status'")
+            else:
+                raise ValidationError("Не указаны обязательные параметры 'start_date' и 'end_date'")
+        except ValueError:
+            raise ValidationError("Неверный формат даты. Используйте YYYY-MM-DD")
 
         teacher = request.user.teacher
 
         lessons = ScheduleElement.objects.filter(
             teacher=teacher,
-            datetime__lt=datetime.now(),
+            datetime__date__gte=start_date,
+            datetime__date__lte=end_date,
             payment_status=payment_status,
-            status='held'
         ).order_by('-datetime')
 
         serializer = ScheduleElementSerializer(lessons, many=True)
@@ -61,7 +74,6 @@ class TeacherFinancialStatsView(APIView):
             teacher=teacher,
             datetime__date__gte=start_date,
             datetime__date__lte=end_date,
-            status='held',
             payment_status='paid'
         )
 

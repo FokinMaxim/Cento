@@ -197,7 +197,7 @@ class ScheduleElement(models.Model):
     PAYMENT_STATUS_CHOICES = [('paid', 'оплачено'), ('not_paid', 'не оплачено')]
     payment_status = models.CharField('Статус оплаты', max_length=20, choices=PAYMENT_STATUS_CHOICES,
                                       default='not_paid')
-    lesson_cost = models.DecimalField('Стоимость задания', max_digits=10, decimal_places=2, default=0)
+    lesson_cost = models.DecimalField('Стоимость занятия', max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"{self.lesson_name} ({self.datetime})"
